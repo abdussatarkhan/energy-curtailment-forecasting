@@ -1,0 +1,13 @@
+data/raw/
+*.csv
+*.parquet
+*.pkl
+*.h5
+.env
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+venv/
+.venv/
+.DS_Store
+Thumbs.db

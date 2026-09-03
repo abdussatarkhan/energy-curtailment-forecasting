@@ -1,0 +1,152 @@
+project:
+  name: "Grid Stress Forecaster — Predicting Renewable Energy Curtailment"
+  version: "1.0.0"
+  author: "Energy Analytics & Data Science Team"
+  domain: "Energy & Utilities"
+  description: "Predicting renewable energy curtailment using Facebook Prophet, LSTM neural networks, and stacking ensemble."
+
+paths:
+  raw_data_dir: "data/raw"
+  processed_data_dir: "data/processed"
+  external_data_dir: "data/external"
+  models_dir: "models"
+  reports_dir: "reports"
+  figures_dir: "images"
+  eia_raw_file: "data/raw/eia_caiso_hourly.parquet"
+  noaa_raw_file: "data/raw/noaa_isd_california.parquet"
+  processed_features_file: "data/processed/energy_features_clean.parquet"
+  predictions_file: "data/processed/forecast_predictions.parquet"
+
+data_collection:
+  eia:
+    base_url: "https://api.eia.gov/v2/electricity/rto/fuel-type-data/data/"
+    api_key_env_var: "EIA_API_KEY"
+    default_respondent: "CISO"  # California ISO (CAISO)
+    default_frequency: "hourly"
+    start_date: "2019-01-01"
+    end_date: "2024-01-01"
+    fuel_types:
+      - "SUN"  # Solar
+      - "WND"  # Wind
+      - "NG"   # Natural Gas
+      - "WAT"  # Hydro
+      - "NUC"  # Nuclear
+      - "OTH"  # Other
+  noaa:
+    isd_base_url: "https://www.ncei.noaa.gov/data/global-hourly/access"
+    target_stations:
+      - station_id: "72295023174"
+        name: "Los Angeles International Airport"
+        lat: 33.9425
+        lon: -118.4081
+        weight: 0.35
+      - station_id: "72494023234"
+        name: "San Francisco International Airport"
+        lat: 37.6190
+        lon: -122.3749
+        weight: 0.25
+      - station_id: "72389093193"
+        name: "Fresno Yosemite International Airport"
+        lat: 36.7762
+        lon: -119.7181
+        weight: 0.25
+      - station_id: "72290003131"
+        name: "Bakersfield Meadows Field"
+        lat: 35.4336
+        lon: -119.0577
+        weight: 0.15
+
+preprocessing:
+  source_timezone: "America/Los_Angeles"
+  target_timezone: "UTC"
+  interpolate_limit: 3
+  curtailment_threshold_mw: 250.0  # Threshold MW over-generation to trigger curtailment
+  net_load_buffer_mw: 1500.0       # Minimum thermal baseline generation
+  outlier_std_cutoff: 4.0
+
+feature_engineering:
+  solar_position:
+    latitude: 36.7783   # California geographic center
+    longitude: -119.4179
+  lag_hours:
+    - 1
+    - 2
+    - 3
+    - 6
+    - 12
+    - 24
+    - 48
+  rolling_windows_hours:
+    - 6
+    - 24
+    - 168 # 7-day rolling window
+  fourier_terms:
+    daily_order: 5       # 24-hour cycle
+    weekly_order: 3      # 168-hour cycle
+    annual_order: 4      # 8760-hour cycle
+
+prophet_model:
+  growth: "linear"
+  yearly_seasonality: true
+  weekly_seasonality: true
+  daily_seasonality: true
+  seasonality_mode: "multiplicative"
+  changepoint_prior_scale: 0.05
+  seasonality_prior_scale: 10.0
+  holidays_prior_scale: 10.0
+  country_holidays: "US"
+  cv_initial_days: 730
+  cv_period_days: 90
+  cv_horizon_days: 2
+
+lstm_model:
+  seq_length: 48          # Past 48 hours used as input sequence
+  forecast_horizon: 48    # Predict next 48 hours
+  features:
+    - "net_load_mw"
+    - "solar_generation_mw"
+    - "wind_generation_mw"
+    - "temperature_c"
+    - "ghi_estimated"
+    - "hour_sin"
+    - "hour_cos"
+    - "day_of_week_sin"
+    - "day_of_week_cos"
+    - "fourier_d1_sin"
+    - "fourier_d1_cos"
+  target: "curtailment_mw"
+  lstm_units_layer1: 128
+  lstm_units_layer2: 64
+  dense_units: 32
+  dropout_rate: 0.2
+  learning_rate: 0.001
+  batch_size: 64
+  epochs: 50
+  patience: 10
+
+ensemble:
+  meta_learner: "Ridge"
+  ridge_alpha: 1.0
+  prophet_weight: 0.40
+  lstm_weight: 0.60
+  curtailment_probability_threshold: 0.50
+
+backtesting:
+  test_horizon_hours: 48
+  step_hours: 24
+  min_train_hours: 17520  # 2 full years (2 * 8760)
+  metrics:
+    - "MAE"
+    - "RMSE"
+    - "MAPE"
+    - "Precision"
+    - "Recall"
+    - "F1_Score"
+    - "AUC_ROC"
+
+dashboard:
+  host: "127.0.0.1"
+  port: 8050
+  debug: false
+  refresh_interval_sec: 300
+  title: "Grid Stress Forecaster | CAISO Renewable Curtailment"
