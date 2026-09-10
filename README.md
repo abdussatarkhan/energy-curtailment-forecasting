@@ -1,5 +1,6 @@
 # Renewable Energy Curtailment & Grid Stress Forecaster
 
+[![CI](https://github.com/abdussatarkhan/energy-curtailment-forecasting/actions/workflows/ci.yml/badge.svg)](https://github.com/abdussatarkhan/energy-curtailment-forecasting/actions)
 [![PyTorch](https://img.shields.io/badge/PyTorch-LSTM_Ensemble-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/) [![Prophet](https://img.shields.io/badge/Time_Series-Prophet-00A8E8?style=for-the-badge)](https://facebook.github.io/prophet/) [![Python](https://img.shields.io/badge/Python-Energy_Analytics-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Author](https://img.shields.io/badge/Author-Abdussatar-E50914?style=for-the-badge&logo=github&logoColor=white)](https://github.com/abdussatarkhan)
 
@@ -57,6 +58,16 @@ source venv/bin/activate  # On Windows: .\venv\Scripts\activate
 # Install dependencies (if requirements.txt exists)
 pip install -r requirements.txt
 ```
+
+---
+
+## 🗺️ Roadmap & Upcoming Features
+
+- [x] Facebook Prophet time-series trend decomposition
+- [x] Deep PyTorch LSTM neural network integration
+- [ ] Quantile Regression (DeepAR / LightGBM) for P10/P50/P90 risk bands
+- [ ] Interactive Folium geospatial substation congestion map
+- [ ] Real-time CAISO / ERCOT grid data connector
 
 ---
 
