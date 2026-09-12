@@ -42,6 +42,15 @@ print(f"Cleaned dataset: {len(df_clean)} records")
 
 # %% [markdown]
 # ## 1. Feature Engineering Transformation
+# 
+# ### Mathematical Formulations:
+# 1. **Fourier Series Harmonic Decomposition**:
+#    Captures multi-seasonal cyclical patterns (diurnal 24h, weekly 168h, annual 8760h):
+#    $$F_k(t) = \left[ \sin\left(\frac{2\pi k t}{P}\right), \cos\left(\frac{2\pi k t}{P}\right) \right], \quad k \in \{1, \dots, K\}$$
+# 
+# 2. **Astronomical Solar Elevation Angle**:
+#    $$\sin(\alpha) = \sin(\phi) \sin(\delta) + \cos(\phi) \cos(\delta) \cos(h)$$
+#    where $\phi$ is latitude, $\delta$ is solar declination angle, and $h$ is hour angle.
 # Applying the feature engineer to create cyclical encodings, solar elevation, Fourier features, and autoregressive lags.
 
 # %%
